@@ -59,4 +59,12 @@ public final class PlayerUtils {
         if (!entName.startsWith("\247") || !playerName.startsWith("\247")) return false;
         return entName.charAt(1) == playerName.charAt(1);
     }
+
+    public static boolean isMoving() {
+        return Wrapper.getPlayer() != null && (Wrapper.getPlayer().movementInput.moveForward != 0.0F || Wrapper.getPlayer().movementInput.moveStrafe != 0.0F);
+    }
+
+    public static boolean isOnLiquid() {
+        return MovementUtils.isInLiquid();
+    }
 }

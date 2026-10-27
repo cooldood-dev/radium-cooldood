@@ -34,6 +34,7 @@ public final class ModuleManager {
                 new Speed(),
                 new NoSlowdown(),
                 new Flight(),
+                new GlideFly(),
                 new Step(),
                 new LongJump(),
                 new AntiFall(),
@@ -104,7 +105,6 @@ public final class ModuleManager {
                 continue;
             if (moduleBind == keyPressed) {
                 module.toggle();
-                return;
             }
         }
     };

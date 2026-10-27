@@ -306,6 +306,17 @@ public final class InventoryUtils {
         return damage;
     }
 
+    public static int findItemInInventory(Item item) {
+        if (Wrapper.getPlayer() == null || Wrapper.getPlayer().inventoryContainer == null) return -1;
+        for (int i = 0; i < 45; i++) {
+            ItemStack stack = Wrapper.getPlayer().inventoryContainer.getSlot(i).getStack();
+            if (stack != null && stack.getItem() == item) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     public enum ClickType {
         // if mouseButtonClicked is 0 `DROP_ITEM` will drop 1
         // item from the stack else if it is 1 it will drop the entire stack

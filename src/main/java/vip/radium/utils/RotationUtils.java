@@ -98,4 +98,49 @@ public final class RotationUtils {
         final float var1 = (float) (StrictMath.atan2(zDist, xDist) * 180.0D / Math.PI) - 90.0F;
         return yaw + MathHelper.wrapAngleTo180_float(var1 - yaw);
     }
+
+    public static float getYawChange(double posX, double posZ) {
+        return getYawChangeGiven(posX, posZ, Wrapper.getPlayer().rotationYaw);
+    }
+
+    public static float getYawChangeGiven(double posX, double posZ, float yaw) {
+        double deltaX = posX - Wrapper.getPlayer().posX;
+        double deltaZ = posZ - Wrapper.getPlayer().posZ;
+        double yawToEntity;
+        if ((deltaZ < 0.0D) && (deltaX < 0.0D)) {
+            yawToEntity = 90.0D + Math.toDegrees(Math.atan(deltaZ / deltaX));
+        } else if ((deltaZ < 0.0D) && (deltaX > 0.0D)) {
+            yawToEntity = -90.0D + Math.toDegrees(Math.atan(deltaZ / deltaX));
+        } else {
+            yawToEntity = Math.toDegrees(-Math.atan(deltaX / deltaZ));
+        }
+        return MathHelper.wrapAngleTo180_float(-(yaw - (float) yawToEntity));
+    }
+
+    public static float getPitchChange(Entity entity, double posY) {
+        double deltaX = entity.posX - Wrapper.getPlayer().posX;
+        double deltaZ = entity.posZ - Wrapper.getPlayer().posZ;
+        double deltaY = posY - 2.2D + entity.getEyeHeight() - Wrapper.getPlayer().posY;
+        double distanceXZ = MathHelper.sqrt_double(deltaX * deltaX + deltaZ * deltaZ);
+        double pitchToEntity = -Math.toDegrees(Math.atan(deltaY / distanceXZ));
+        return -MathHelper.wrapAngleTo180_float(Wrapper.getPlayer().rotationPitch - (float) pitchToEntity) - 2.5F;
+    }
+
+    public static float[] getRotations(net.minecraft.entity.EntityLivingBase ent) {
+        double x = ent.posX;
+        double z = ent.posZ;
+        double y = ent.posY + ent.getEyeHeight() / 2.0F;
+        return getRotationFromPosition(x, z, y);
+    }
+
+    public static float[] getRotationFromPosition(double x, double z, double y) {
+        double xDiff = x - Wrapper.getPlayer().posX;
+        double zDiff = z - Wrapper.getPlayer().posZ;
+        double yDiff = y - Wrapper.getPlayer().posY - 1.2;
+
+        double dist = MathHelper.sqrt_double(xDiff * xDiff + zDiff * zDiff);
+        float yaw = (float) (Math.atan2(zDiff, xDiff) * 180.0D / 3.141592653589793D) - 90.0F;
+        float pitch = (float) -(Math.atan2(yDiff, dist) * 180.0D / 3.141592653589793D);
+        return new float[]{yaw, pitch};
+    }
 }

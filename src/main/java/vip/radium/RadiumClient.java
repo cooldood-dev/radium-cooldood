@@ -14,26 +14,9 @@ import vip.radium.gui.csgo.SkeetUI;
 import vip.radium.gui.font.FontManager;
 import vip.radium.module.ModuleManager;
 import vip.radium.notification.NotificationManager;
+import vip.radium.utils.RadiumLogger;
 
 import static org.lwjgl.opengl.GL11.*;
-
-/**
- * Stop inv manager from throwing out main sword
- * tabui
- * finish enemy manager implementation (killaura priority etc)
- * basic modules + commands need to be added
- * Fix gui expandable boxes not being able to be clicked if outside module box
- * Config in da gui
- * 2 block step
- * Fix scaffold silent or ghostblock when not jumping
- * southside chams mode
- * Armor dura on target hud and esps
- * add forceground to autopotuion and module checks (fly scaffold etc)
- * child options do not save
- * southside combat mods
- * Auto load config on startup
- * module/property aliases
- */
 
 public final class RadiumClient {
     private static final RadiumClient INSTANCE = new RadiumClient();
@@ -44,8 +27,11 @@ public final class RadiumClient {
     private NotificationManager notificationManager;
     private CommandManager commandManager;
     private AltManager altManager;
+
     public static final String NAME = "Radium";
     public static final String VERSION = "v1.4.0";
+    /** Name of the config that is automatically saved on shutdown and loaded on startup. */
+    public static final String AUTO_CONFIG_NAME = "autosave";
 
     public PlayerManager getPlayerManager() {
         return playerManager;
@@ -77,16 +63,23 @@ public final class RadiumClient {
 
     @EventLink
     public final Listener<ClientStartupEvent> onClientStart = e -> {
+        // Initialise logger first so all subsequent init steps are captured
+        RadiumLogger.init();
+        RadiumLogger.info("Starting " + NAME + " " + VERSION);
+
         setGLHints();
         FontManager.initTextures();
 
         configManager = new ConfigManager();
+        RadiumLogger.info("ConfigManager initialised");
 
         playerManager = new PlayerManager();
 
         altManager = new AltManager();
+        RadiumLogger.info("AltManager initialised, " + altManager.getElements().size() + " alt(s) loaded");
 
         moduleManager = new ModuleManager();
+        RadiumLogger.info("ModuleManager initialised, " + moduleManager.getModules().size() + " module(s) loaded");
 
         SkeetUI.init();
 
@@ -96,8 +89,28 @@ public final class RadiumClient {
 
         moduleManager.postInit();
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> altManager.getAlteningAuth()
-                .updateService(AlteningServiceType.MOJANG)));
+        // Auto-load the persistent config if it exists
+        if (configManager.findConfig(AUTO_CONFIG_NAME) != null) {
+            boolean loaded = configManager.loadConfig(AUTO_CONFIG_NAME);
+            RadiumLogger.info("Auto-loaded config '" + AUTO_CONFIG_NAME + "': " + loaded);
+        }
+
+        // Shutdown hook: auto-save config + flush logger
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            altManager.getAlteningAuth().updateService(AlteningServiceType.MOJANG);
+
+            // Auto-save all module states and settings
+            boolean saved = configManager.saveConfig(AUTO_CONFIG_NAME);
+            RadiumLogger.info("Auto-saved config '" + AUTO_CONFIG_NAME + "': " + saved);
+
+            altManager.saveAlts();
+            RadiumLogger.info("Alts saved on shutdown");
+
+            RadiumLogger.info(NAME + " shutdown complete");
+            RadiumLogger.close();
+        }));
+
+        RadiumLogger.info(NAME + " " + VERSION + " fully initialised");
     };
 
     private static void setGLHints() {
@@ -109,7 +122,6 @@ public final class RadiumClient {
         if (eventBus == null) {
             eventBus = new EventBus<>();
         }
-
         return eventBus;
     }
 
@@ -120,5 +132,4 @@ public final class RadiumClient {
     public static RadiumClient getInstance() {
         return INSTANCE;
     }
-
 }

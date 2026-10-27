@@ -763,4 +763,8 @@ public class EntityPlayerSP extends AbstractClientPlayer {
             this.sendPlayerAbilities();
         }
     }
+
+    public void swingItemFake() {
+        super.swingItem();
+    }
 }

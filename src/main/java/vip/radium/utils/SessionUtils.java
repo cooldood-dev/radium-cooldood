@@ -13,7 +13,6 @@ import vip.radium.gui.alt.impl.GuiAltManager;
 import vip.radium.notification.Notification;
 import vip.radium.notification.NotificationType;
 import net.minecraft.util.Session;
-
 import java.net.Proxy;
 
 public final class SessionUtils {
@@ -31,6 +30,7 @@ public final class SessionUtils {
             try {
                 GuiAltManager.status = "\247eLogging in with Refresh Token...";
                 RadiumClient.getInstance().getNotificationManager().add(new Notification("Logging In", 1000, NotificationType.INFO));
+                RadiumLogger.info("Logging in with refresh token...");
 
                 org.localts.model.MinecraftTokenResponse mcToken =
                         org.localts.RefreshTokenAuthentication.authenticateWithRefreshToken(refreshToken);
@@ -46,14 +46,19 @@ public final class SessionUtils {
                 if (alt != null) {
                     alt.setUsername(username);
                     alt.setWorking(true);
+                    // Persist the refresh-token alt back to alts.txt so it survives restarts
+                    RadiumClient.getInstance().getAltManager().saveAlts();
+                    RadiumLogger.info("Refresh-token alt saved: " + username);
                 }
 
                 RadiumClient.getInstance().getNotificationManager().add(new Notification("Login Success", "Logged into " + username, NotificationType.SUCCESS));
                 GuiAltManager.status = "\247aLogged in (" + username + ").";
+                RadiumLogger.info("Logged in successfully as: " + username);
             } catch (Throwable t) {
                 String errorMsg = t.getMessage() != null ? t.getMessage() : "Failed";
                 GuiAltManager.status = "\247c" + errorMsg;
                 RadiumClient.getInstance().getNotificationManager().add(new Notification("Login Failed", errorMsg, 2000, NotificationType.ERROR));
+                RadiumLogger.error("Refresh-token login failed: " + errorMsg);
                 if (alt != null) {
                     alt.setWorking(false);
                 }
@@ -71,6 +76,7 @@ public final class SessionUtils {
             try {
                 GuiAltManager.status = "\247eLogging in...";
                 RadiumClient.getInstance().getNotificationManager().add(new Notification("Logging In", 1000, NotificationType.INFO));
+                RadiumLogger.info("Logging in with email/password alt...");
                 YggdrasilUserAuthentication userAuthentication =
                         (YggdrasilUserAuthentication) new YggdrasilAuthenticationService(Proxy.NO_PROXY, "")
                                 .createUserAuthentication(Agent.MINECRAFT);
@@ -84,11 +90,15 @@ public final class SessionUtils {
                         UUIDTypeAdapter.fromUUID(userAuthentication.getSelectedProfile().getId()),
                         userAuthentication.getAuthenticatedToken(),
                         userAuthentication.getUserType().getName());
+                // Persist any username change
+                RadiumClient.getInstance().getAltManager().saveAlts();
                 RadiumClient.getInstance().getNotificationManager().add(new Notification("Login Success", "Logged into account " + username, NotificationType.SUCCESS));
                 GuiAltManager.status = "\247aLogged in (" + username + ").";
-            } catch (AuthenticationException ignored) {
+                RadiumLogger.info("Logged in successfully as: " + username);
+            } catch (AuthenticationException e) {
                 GuiAltManager.status = "\247cFailed.";
                 RadiumClient.getInstance().getNotificationManager().add(new Notification("Login Failed", 1000, NotificationType.ERROR));
+                RadiumLogger.error("Alt login failed: " + (e.getMessage() != null ? e.getMessage() : "AuthenticationException"));
                 alt.setWorking(false);
             }
         }).start();

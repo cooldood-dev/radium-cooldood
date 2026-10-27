@@ -56,6 +56,7 @@ public abstract class EntityLivingBase extends Entity {
      * The amount of time remaining this entity should act 'hurt'. (Visual appearance of red tint)
      */
     public int hurtTime;
+    public int waitTicks;
     /**
      * What the hurt time was max set to last.
      */

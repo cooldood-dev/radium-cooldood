@@ -110,6 +110,7 @@ public abstract class EntityPlayer extends EntityLivingBase
 
     /** The current experience level the player is on. */
     public int experienceLevel;
+    public int criticalHits = 0;
 
     /**
      * The total amount of experience the player has. This also includes the amount of experience within their

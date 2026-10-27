@@ -32,7 +32,6 @@ import vip.radium.utils.Wrapper;
 public final class Flight extends Module {
 
     private static final int MAX_ENDER_PEARL_SCAN_DIST = 20;
-
     private static final long PEARL_DISABLE_DURATION = 2000L;
 
     private static final C08PacketPlayerBlockPlacement BLOCK_PLACEMENT = new C08PacketPlayerBlockPlacement(
@@ -40,10 +39,12 @@ public final class Flight extends Module {
 
     private final EnumProperty<FlightMode> flightModeProperty = new EnumProperty<>("Mode", FlightMode.MOTION);
     private final Property<Boolean> viewBobbingProperty = new Property<>("View Bobbing", true);
-    private final Property<Boolean> pearlFlyProperty = new Property<>("Pearl Exploit", true);
+    private final Property<Boolean> pearlFlyProperty = new Property<>("Pearl Exploit", true,
+            () -> flightModeProperty.getValue() == FlightMode.MOTION);
     private final Property<Boolean> toggleAuraProperty = new Property<>("Toggle Aura", true);
     private final Property<Boolean> timerProperty = new Property<>("Timer", true);
-    private final DoubleProperty speedProperty = new DoubleProperty("Speed", 2.5, 0.1, 5.0, 0.05);
+    private final DoubleProperty speedProperty = new DoubleProperty("Speed", 2.5,
+            () -> flightModeProperty.getValue() != FlightMode.WATCHDOG, 0.1, 5.0, 0.05);
 
     private final TimerUtil timer = new TimerUtil();
     private final TimerUtil disabledTimer = new TimerUtil();
@@ -68,7 +69,6 @@ public final class Flight extends Module {
                     e.setCancelled();
                     return;
                 }
-
                 if (MovementUtils.isMoving())
                     MovementUtils.setSpeed(e, speedProperty.getValue());
                 break;
@@ -97,7 +97,7 @@ public final class Flight extends Module {
                 return;
             }
 
-            if (pearlFlyProperty.getValue()) {
+            if (flightModeProperty.getValue() == FlightMode.MOTION && pearlFlyProperty.getValue()) {
                 if (disabledTimer.hasElapsed(PEARL_DISABLE_DURATION)) {
                     toggle();
                     return;
@@ -161,16 +161,15 @@ public final class Flight extends Module {
             if (viewBobbingProperty.getValue())
                 player.cameraYaw = 0.105F;
 
-            switch (flightModeProperty.getValue()) {
-                case MOTION:
-                    if (Wrapper.getGameSettings().keyBindJump.isKeyDown()) {
-                        player.motionY = 1.0F;
-                    } else if (Wrapper.getGameSettings().keyBindSneak.isKeyDown()) {
-                        player.motionY = -1.0F;
-                    } else {
-                        Wrapper.getPlayer().motionY = 0.0D;
-                    }
-                    break;
+            // MOTION mode Y-motion control
+            if (flightModeProperty.getValue() == FlightMode.MOTION) {
+                if (Wrapper.getGameSettings().keyBindJump.isKeyDown()) {
+                    player.motionY = 1.0F;
+                } else if (Wrapper.getGameSettings().keyBindSneak.isKeyDown()) {
+                    player.motionY = -1.0F;
+                } else {
+                    Wrapper.getPlayer().motionY = 0.0D;
+                }
             }
         }
     };
@@ -200,11 +199,9 @@ public final class Flight extends Module {
     private int findPearlsInHotBar() {
         for (int i = 36; i < 45; i++) {
             ItemStack stack = Wrapper.getStackInSlot(i);
-
             if (stack != null && stack.getItem() instanceof ItemEnderPearl)
                 return i - 36;
         }
-
         return -1;
     }
 
