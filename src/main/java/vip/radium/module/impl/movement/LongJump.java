@@ -136,9 +136,13 @@ public final class LongJump extends Module {
 
     @Override
     public void onDisable() {
-        Wrapper.getTimer().timerSpeed = 1.0F;
-        Wrapper.getPlayer().motionX = 0;
-        Wrapper.getPlayer().motionZ = 0;
+        if (Wrapper.getTimer() != null) {
+            Wrapper.getTimer().timerSpeed = 1.0F;
+        }
+        if (Wrapper.getPlayer() != null) {
+            Wrapper.getPlayer().motionX = 0;
+            Wrapper.getPlayer().motionZ = 0;
+        }
         Step.cancelStep = false;
     }
 

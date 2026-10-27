@@ -22,18 +22,26 @@ public final class FullBright extends Module {
 
     @Override
     public void onEnable() {
-        lastGamma = Wrapper.getGameSettings().gammaSetting;
-        hadNv = Wrapper.getPlayer().isPotionActive(Potion.nightVision);
+        if (Wrapper.getGameSettings() != null) {
+            lastGamma = Wrapper.getGameSettings().gammaSetting;
+        }
+        if (Wrapper.getPlayer() != null) {
+            hadNv = Wrapper.getPlayer().isPotionActive(Potion.nightVision);
+        } else {
+            hadNv = false;
+        }
     }
 
     @EventLink
     private final Listener<UpdatePositionEvent> onUpdate = event -> {
-        if (event.isPre()) {
+        if (event.isPre() && Wrapper.getPlayer() != null) {
             switch (modeProperty.getValue()) {
                 case GAMMA:
                     if (!hadNv && Wrapper.getPlayer().isPotionActive(Potion.nightVision))
                         Wrapper.getPlayer().removePotionEffect(Potion.nightVision.id);
-                    Wrapper.getGameSettings().gammaSetting = 1000.0F;
+                    if (Wrapper.getGameSettings() != null) {
+                        Wrapper.getGameSettings().gammaSetting = 1000.0F;
+                    }
                     break;
                 case POTION:
                     if (!hadNv) {
@@ -50,11 +58,13 @@ public final class FullBright extends Module {
     public void onDisable() {
         switch (modeProperty.getValue()) {
             case POTION:
-                if (addedNv && !hadNv)
+                if (addedNv && !hadNv && Wrapper.getPlayer() != null)
                     Wrapper.getPlayer().removePotionEffect(Potion.nightVision.id);
                 break;
             case GAMMA:
-                Wrapper.getGameSettings().gammaSetting = lastGamma;
+                if (Wrapper.getGameSettings() != null) {
+                    Wrapper.getGameSettings().gammaSetting = lastGamma;
+                }
                 break;
         }
     }

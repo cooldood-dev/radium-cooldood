@@ -314,14 +314,18 @@ public final class Scaffold extends Module {
         blockCount = 0;
         placeCounter = 0;
         ticksSincePlace = 0;
-        lastPos = (int) Wrapper.getPlayer().posY;
-        originalHotBarSlot = Wrapper.getPlayer().inventory.currentItem;
+        if (Wrapper.getPlayer() != null) {
+            lastPos = (int) Wrapper.getPlayer().posY;
+            originalHotBarSlot = Wrapper.getPlayer().inventory.currentItem;
+        }
     }
 
     @Override
     public void onDisable() {
         angles = null;
-        Wrapper.getPlayer().inventory.currentItem = originalHotBarSlot;
+        if (Wrapper.getPlayer() != null) {
+            Wrapper.getPlayer().inventory.currentItem = originalHotBarSlot;
+        }
     }
 
     public boolean isRotating() {
