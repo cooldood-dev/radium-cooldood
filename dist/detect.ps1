@@ -47,19 +47,25 @@ if ($FindJava) {
         }
     }
 
-    $detected = $null
+    $detected64 = $null
+    $detected32 = $null
     $checked = [System.Collections.Generic.HashSet[string]]::new()
     foreach ($exe in $candidates) {
         if (-not $checked.Add($exe)) { continue }
         try {
             $ver = & $exe -version 2>&1 | Out-String
             if ($ver -match '1\.8\.' -or $ver -match 'version "8[\."]') {
-                $detected = $exe
-                break
+                if ($ver -match '64-Bit' -or $ver -match 'x86_64' -or $ver -match 'amd64') {
+                    $detected64 = $exe
+                    break
+                } elseif (-not $detected32) {
+                    $detected32 = $exe
+                }
             }
         } catch {}
     }
 
+    $detected = if ($detected64) { $detected64 } else { $detected32 }
     if ($detected) {
         Write-Output $detected
     }
@@ -146,9 +152,18 @@ if ($Launch) {
         New-Item -ItemType Directory -Path $runDir -Force | Out-Null
     }
 
+    # Detect if Java runtime is 32-bit or 64-bit to set safe heap limit
+    $maxHeap = "2048M"
+    try {
+        $ver = & $JavaExe -version 2>&1 | Out-String
+        if ($ver -notmatch '64-Bit' -and $ver -notmatch 'x86_64' -and $ver -notmatch 'amd64') {
+            $maxHeap = "1024M"
+        }
+    } catch {}
+
     $arguments = @(
         '-Xms512M',
-        '-Xmx2048M',
+        "-Xmx$maxHeap",
         "-Djava.library.path=$nativesDir",
         '-cp',
         ($cpElements -join ';'),
@@ -178,7 +193,27 @@ if ($Launch) {
         $arguments += $GameArgs
     }
 
+    # Build properly quoted command-line argument string for Windows process execution
+    $quotedArgs = [System.Collections.Generic.List[string]]::new()
+    foreach ($arg in $arguments) {
+        if ($arg -match '[\s"]') {
+            # Escape inner double quotes and wrap in quotes
+            $escaped = $arg -replace '(\\*)(")', '$1$1\"'
+            $escaped = $escaped -replace '(\\+)$', '$1$1'
+            $quotedArgs.Add("`"$escaped`"")
+        } else {
+            $quotedArgs.Add($arg)
+        }
+    }
+
     Set-Location $runDir
-    $proc = Start-Process -FilePath $JavaExe -ArgumentList $arguments -NoNewWindow -PassThru -Wait
+    $psi = [System.Diagnostics.ProcessStartInfo]::new()
+    $psi.FileName = $JavaExe
+    $psi.Arguments = ($quotedArgs -join ' ')
+    $psi.WorkingDirectory = $runDir
+    $psi.UseShellExecute = $false
+
+    $proc = [System.Diagnostics.Process]::Start($psi)
+    $proc.WaitForExit()
     exit $proc.ExitCode
 }

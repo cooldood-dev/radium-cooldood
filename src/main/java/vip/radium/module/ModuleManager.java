@@ -73,6 +73,8 @@ public final class ModuleManager {
                 new DamageParticles(),
                 new EnchantGlint(),
                 new NoScoreboard(),
+                new Freelook(),
+                new ItemPhysics(),
                 // Other
                 new InventoryMove(),
                 new MemoryFix(),

@@ -39,6 +39,10 @@ public final class GuiAltManager extends GuiAltScreen {
                 buttonWidth, buttonHeight, "Add"));
         this.buttonList.add(new GuiButton(4, margin, margin, buttonWidth,
                 buttonHeight, "TheAltening"));
+        this.buttonList.add(new GuiButton(6, width / 2 - (buttonWidth / 2), margin, buttonWidth,
+                buttonHeight, "Microsoft Login"));
+        this.buttonList.add(new GuiButton(7, width / 2 - (buttonWidth / 2), margin + buttonHeight + margin, buttonWidth,
+                buttonHeight, "Cracked Generator"));
         this.buttonList.add(new GuiButton(5, width - buttonWidth - margin, margin, buttonWidth,
                 buttonHeight, "Refresh Token"));
     }
@@ -66,6 +70,12 @@ public final class GuiAltManager extends GuiAltScreen {
                 break;
             case 5:
                 Wrapper.getMinecraft().displayGuiScreen(new GuiRefreshTokenLogin(this));
+                break;
+            case 6:
+                vip.radium.utils.alts.microsoft.AuthServer.startAndOpen();
+                break;
+            case 7:
+                Wrapper.getMinecraft().displayGuiScreen(new GuiCrackedGenerator(this));
                 break;
         }
     }

@@ -42,12 +42,33 @@ public class RenderEntityItem extends Render<EntityItem>
             float f = 0.25F;
             float f1 = MathHelper.sin(((float)itemIn.getAge() + p_177077_8_) / 10.0F + itemIn.hoverStart) * 0.1F + 0.1F;
             float f2 = p_177077_9_.getItemCameraTransforms().func_181688_b(ItemCameraTransforms.TransformType.GROUND).scale.y;
-            GL11.glTranslatef((float)p_177077_2_, (float)p_177077_4_ + f1 + 0.25F * f2, (float)p_177077_6_);
 
-            if (flag || this.renderManager.options != null)
+            if (vip.radium.module.impl.visuals.ItemPhysics.isItemPhysicsEnabled())
             {
-                float f3 = (((float)itemIn.getAge() + p_177077_8_) / 20.0F + itemIn.hoverStart) * (180F / (float)Math.PI);
-                GL11.glRotatef(f3, 0.0F, 1.0F, 0.0F);
+                GL11.glTranslatef((float)p_177077_2_, (float)p_177077_4_ + (flag ? 0.2F : 0.05F) * f2, (float)p_177077_6_);
+
+                // Rotate item onto its back / flat on ground
+                GL11.glRotatef(90.0F, 1.0F, 0.0F, 0.0F);
+                GL11.glRotatef(itemIn.rotationYaw, 0.0F, 0.0F, 1.0F);
+
+                // If falling or moving, tumble/rotate around the pitch axis
+                if (!itemIn.onGround)
+                {
+                    vip.radium.module.impl.visuals.ItemPhysics mod = vip.radium.module.impl.visuals.ItemPhysics.getInstance();
+                    double speedMult = mod != null ? mod.rotateSpeed.getValue() : 1.0D;
+                    float rot = (float)(((double)(System.currentTimeMillis() % 100000L) / 5.0D * speedMult) % 360.0D);
+                    GL11.glRotatef(rot, 1.0F, 0.0F, 0.0F);
+                }
+            }
+            else
+            {
+                GL11.glTranslatef((float)p_177077_2_, (float)p_177077_4_ + f1 + 0.25F * f2, (float)p_177077_6_);
+
+                if (flag || this.renderManager.options != null)
+                {
+                    float f3 = (((float)itemIn.getAge() + p_177077_8_) / 20.0F + itemIn.hoverStart) * (180F / (float)Math.PI);
+                    GL11.glRotatef(f3, 0.0F, 1.0F, 0.0F);
+                }
             }
 
             if (!flag)

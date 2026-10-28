@@ -688,6 +688,11 @@ public class EntityRenderer implements IResourceManagerReloadListener {
                 float f1 = entity.rotationYaw;
                 float f2 = entity.rotationPitch;
 
+                if (vip.radium.module.impl.visuals.Freelook.isFreelooking()) {
+                    f1 = vip.radium.module.impl.visuals.Freelook.getCameraYaw();
+                    f2 = vip.radium.module.impl.visuals.Freelook.getCameraPitch();
+                }
+
                 if (this.mc.gameSettings.thirdPersonView == 2) {
                     f2 += 180.0F;
                 }
@@ -1155,11 +1160,19 @@ public class EntityRenderer implements IResourceManagerReloadListener {
                 this.smoothCamPartialTicks = p_181560_1_;
                 f2 = this.smoothCamFilterX * f4;
                 f3 = this.smoothCamFilterY * f4;
-                this.mc.thePlayer.setAngles(f2, f3 * (float) i);
+                if (vip.radium.module.impl.visuals.Freelook.isFreelooking()) {
+                    vip.radium.module.impl.visuals.Freelook.handleMouseInput(f2, f3 * (float) i);
+                } else {
+                    this.mc.thePlayer.setAngles(f2, f3 * (float) i);
+                }
             } else {
                 this.smoothCamYaw = 0.0F;
                 this.smoothCamPitch = 0.0F;
-                this.mc.thePlayer.setAngles(f2, f3 * (float) i);
+                if (vip.radium.module.impl.visuals.Freelook.isFreelooking()) {
+                    vip.radium.module.impl.visuals.Freelook.handleMouseInput(f2, f3 * (float) i);
+                } else {
+                    this.mc.thePlayer.setAngles(f2, f3 * (float) i);
+                }
             }
         }
 

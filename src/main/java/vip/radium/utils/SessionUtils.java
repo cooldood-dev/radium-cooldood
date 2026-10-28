@@ -66,9 +66,23 @@ public final class SessionUtils {
         }).start();
     }
 
+    public static void logInCracked(String username) {
+        Wrapper.getMinecraft().session = new Session(username, username, "0", "legacy");
+        GuiAltManager.status = "\247aLogged in as cracked (" + username + ").";
+        RadiumClient.getInstance().getNotificationManager().add(
+                new Notification("Cracked Login", "Username set to " + username, NotificationType.SUCCESS)
+        );
+        RadiumLogger.info("Logged into cracked account: " + username);
+    }
+
     public static void logIn(Alt alt) {
         if (alt.isRefreshToken()) {
             logInWithRefreshToken(alt.getRefreshToken(), alt);
+            return;
+        }
+
+        if (alt.getPassword() == null || alt.getPassword().isEmpty()) {
+            logInCracked(alt.getUsername() != null && !alt.getUsername().isEmpty() ? alt.getUsername() : alt.getEmail());
             return;
         }
 
